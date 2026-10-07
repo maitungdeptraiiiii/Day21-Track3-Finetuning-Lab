@@ -26,7 +26,7 @@
 | Precision | fp16 (T4 không có bf16) |
 
 **Vì sao chọn model + dataset này.** Qwen3.5-4B là model lớn nhất chạy bf16/fp16 LoRA vừa
-16 GB của Colab T4 (~10 GB VRAM), có chat template hỗ trợ tiếng Việt và khối `<think>`.
+16 GB của Colab T4 (peak đo được 8.78 GB, `results/runs.csv`), có chat template hỗ trợ tiếng Việt và khối `<think>`.
 Dataset mặc định được giữ vì mọi nhóm điểm đều có thang đo **khách quan** (so khớp từng
 trường, JSON parse được, ms/mẫu) — không cần LLM judge — và checksum tập eval cố định giúp
 phép so sánh với mốc đóng băng là công bằng. Cùng một base model được dùng cho mốc NB2
@@ -150,7 +150,7 @@ chính là Lỗi #3: chấm bằng chỉ số thay thế.
 
 **4.2 — `wrong_lr`.** Chỉ đổi LR từ 1e-4 xuống 1e-5 (thang full-FT), loss cuối cao gấp
 ~2,5 lần (1.570 so với 0.626) sau cùng 30 step. Với LoRA, B được khởi tạo bằng 0 và chỉ có
-khoảng 0,8% tham số được cập nhật. LR thang full-FT quá nhỏ nên trong ngân sách 30 step
+32,464,896 tham số adapter được cập nhật (base đóng băng). LR thang full-FT quá nhỏ nên trong ngân sách 30 step
 adapter gần như chưa rời điểm xuất phát. Nếu chỉ nhìn đường loss mà không biết LR, dễ kết
 luận sai rằng "LoRA không học được bài này" hoặc "cần thêm epoch/rank", trong khi đòn bẩy
 thật chỉ là nhân LR lên ×10.
@@ -166,8 +166,8 @@ cuối cao hơn (0.706 so với 0.626). Trên eval: target **0.940** so với 0.
 trường trên 200), format vẫn 1.00, latency **1801.8 ms** so với 1399.0 ms (+29%, vì base 4-bit
 phải dequantize khi suy luận). Số đo **ủng hộ có điều kiện** khuyến nghị "không dùng QLoRA cho
 Qwen3.5": khi đã vừa VRAM ở 16-bit (8.78 GB trên T4 16 GB) thì QLoRA chỉ làm mất điểm và chậm
-hơn cả lúc train lẫn lúc suy luận. Nhưng mức mất 0.03 là nhỏ. Nếu phần cứng chỉ có ~6 GB (như
-GPU laptop RTX 3060 của tôi), QLoRA là cách duy nhất để train được, và cái giá 3 điểm là chấp
+hơn cả lúc train lẫn lúc suy luận. Nhưng mức mất 0.03 là nhỏ. Nếu GPU không chứa nổi 8.78 GB (như
+GPU laptop RTX 3060 của tôi), QLoRA với peak 3.86 GB là cách để train được, và cái giá 3 điểm là chấp
 nhận được. Với n = 50, chênh 0.03 nằm trong vùng nhiễu, nên tôi không kết luận mạnh hơn
 "QLoRA không tốt hơn, và có thể kém hơn một chút".
 
